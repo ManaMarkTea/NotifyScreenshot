@@ -26,12 +26,11 @@ namespace NotifyScreenshot
                 // Obtain any user input (text boxes, menu selections) from the notification
                 var userInput = toastArgs.UserInput;
 
-
                 foreach(var arg in args)
                 {
                     if (arg.Key == "imagePath")
                     {
-                        Process.Start("explorer.exe", "\"" + arg.Value + "\"");
+                        Process.Start("explorer.exe", "/select,\"" + arg.Value + "\"");
                         break;
                     }
                 }
