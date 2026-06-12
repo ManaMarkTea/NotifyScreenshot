@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release Windows executable
+    runs-on: windows-latest
+
+    env:
+      PROJECT_PATH: NotifyScreenshot.csproj
+      DOTNET_VERSION: 10.0.x
+      PUBLISH_DIR: publish-single
+      EXE_NAME: NotifyScreenshot.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Resolve release metadata
+        id: release
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "${{ inputs.tag }}"
+          } else {
+            $tag = "${{ github.ref_name }}"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            throw "Release tag is required."
+          }
+
+          if ($tag -notmatch '^v\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
+            throw "Release tag must look like v1.2.3, v1.2.3-beta.1, or v1.2.3-rc.1."
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "asset=NotifyScreenshot-$tag-win-x64.exe" >> $env:GITHUB_OUTPUT
+
+      - name: Publish standalone executable
+        shell: pwsh
+        run: |
+          dotnet publish $env:PROJECT_PATH `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output $env:PUBLISH_DIR `
+            -p:PublishSingleFile=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=none `
+            -p:DebugSymbols=false
+
+      - name: Prepare release asset
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:PUBLISH_DIR $env:EXE_NAME
+          $destination = Join-Path $env:PUBLISH_DIR "${{ steps.release.outputs.asset }}"
+
+          if (-not (Test-Path -LiteralPath $source)) {
+            throw "Published executable was not found at $source."
+          }
+
+          Move-Item -LiteralPath $source -Destination $destination -Force
+
+          $files = Get-ChildItem -LiteralPath $env:PUBLISH_DIR -File
+          if ($files.Count -ne 1) {
+            $files | Format-Table Name, Length
+            throw "Expected exactly one published file in $env:PUBLISH_DIR."
+          }
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          $asset = Join-Path $env:PUBLISH_DIR "${{ steps.release.outputs.asset }}"
+
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            gh release create $tag $asset `
+              --repo $env:GITHUB_REPOSITORY `
+              --title $tag `
+              --generate-notes `
+              --target $env:GITHUB_SHA
+          } else {
+            gh release create $tag $asset `
+              --repo $env:GITHUB_REPOSITORY `
+              --title $tag `
+              --generate-notes `
+              --verify-tag
+          }

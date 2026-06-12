@@ -93,10 +93,26 @@ publish-single\NotifyScreenshot.exe
 
 For a clean one-file output folder, publish to an empty folder or delete old publish output before republishing. Older builds of this project used WPF and may have left extra DLLs in the original `publish` folder.
 
+## GitHub Releases
+
+This repository includes a GitHub Actions workflow that can build and publish the standalone Windows executable automatically.
+
+To create a release:
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+When GitHub receives a tag beginning with `v`, the workflow builds the app on Windows, publishes the self-contained single-file executable, and creates a GitHub Release with the `.exe` attached.
+
+You can also run the release workflow manually from the repository's `Actions` tab and enter a tag such as `v1.0.0`.
+
 ## Project Structure
 
 - `Program.cs` - startup logic, toast creation, and toast click handling
 - `NotifyScreenshot.csproj` - target framework, icon, package, and publish settings
+- `.github/workflows/release.yml` - GitHub Actions release build
 - `screenshot_alt_macos_bigsur_icon_189765.ico` - application icon
 
 ## Notes
