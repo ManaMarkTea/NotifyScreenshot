@@ -5,7 +5,6 @@
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
     <ApplicationIcon>screenshot_alt_macos_bigsur_icon_189765.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -23,5 +22,10 @@
     <SelfContained>true</SelfContained>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <!-- <PublishTrimmed>true</PublishTrimmed> -->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 </Project>
