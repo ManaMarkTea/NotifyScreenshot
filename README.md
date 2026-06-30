@@ -2,7 +2,7 @@
 
 NotifyScreenshot is a small Windows .NET helper that shows a local screenshot file as a Windows toast notification.
 
-It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. Clicking the notification opens File Explorer with that screenshot selected.
+It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. Clicking the notification opens File Explorer with that screenshot selected; Alt-clicking opens the screenshot in its default image app instead.
 
 ## How It Works
 
@@ -15,7 +15,9 @@ It is meant to be launched by another screenshot tool, script, or hotkey workflo
    - the image path stored in the toast activation arguments
 4. The app exits after showing the notification.
 5. If the toast is clicked later, Windows reactivates the app with the saved activation arguments.
-6. The app reads the `imagePath` argument and runs File Explorer with `/select`, opening the containing folder and highlighting the screenshot.
+6. The app reads the `imagePath` argument and either:
+   - runs File Explorer with `/select`, opening the containing folder and highlighting the screenshot; or
+   - when Alt is held, opens the screenshot in its default image app.
 
 The notification behavior is implemented in [Program.cs](Program.cs). The project is intentionally built as a Windows executable instead of a console app, so it can run from screenshot tools without opening a terminal window.
 
@@ -119,5 +121,5 @@ You can also run the release workflow manually from the repository's `Actions` t
 
 - This app does not take screenshots by itself. It only displays a notification for an image file that already exists.
 - The first command-line argument should be the image path.
-- Clicking the toast selects the image in File Explorer instead of opening the image directly.
+- Clicking the toast selects the image in File Explorer. Hold Alt while clicking to open the image directly.
 - The app uses modern .NET, but it is still Windows-specific because Windows toast notifications and File Explorer selection are Windows features.

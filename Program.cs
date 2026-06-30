@@ -1,11 +1,16 @@
 using Microsoft.Toolkit.Uwp.Notifications;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace NotifyScreenshot;
 
 internal static class Program
 {
+    private const int VirtualKeyAlt = 0x12;
     private static readonly ManualResetEventSlim ToastActivationHandled = new(false);
+
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int virtualKey);
 
     [STAThread]
     private static int Main(string[] args)
@@ -58,14 +63,31 @@ internal static class Program
                 continue;
             }
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "explorer.exe",
-                Arguments = $"/select,\"{arg.Value}\"",
-                UseShellExecute = true
-            });
+            OpenScreenshot(arg.Value);
 
             break;
         }
     }
+
+    private static void OpenScreenshot(string imagePath)
+    {
+        if (IsAltKeyDown())
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = imagePath,
+                UseShellExecute = true
+            });
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "explorer.exe",
+            Arguments = $"/select,\"{imagePath}\"",
+            UseShellExecute = true
+        });
+    }
+
+    private static bool IsAltKeyDown() => (GetAsyncKeyState(VirtualKeyAlt) & 0x8000) != 0;
 }
