@@ -2,7 +2,7 @@
 
 NotifyScreenshot is a small Windows .NET helper that shows a local screenshot file as a Windows toast notification.
 
-It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. Clicking the notification opens File Explorer with that screenshot selected; Alt-clicking opens the screenshot in its default image app instead.
+It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. The **Edit** button opens the screenshot in its default image app, and **Select** opens File Explorer with that screenshot selected. Clicking the notification itself also selects the screenshot; Alt-clicking opens it in its default image app instead.
 
 ## How It Works
 
@@ -12,12 +12,14 @@ It is meant to be launched by another screenshot tool, script, or hotkey workflo
    - the title `Screenshot`
    - the image path as notification text
    - the screenshot itself as an inline image preview
+   - `Edit` and `Select` buttons to open the screenshot or select it in File Explorer
    - the image path stored in the toast activation arguments
 4. The app exits after showing the notification.
 5. If the toast is clicked later, Windows reactivates the app with the saved activation arguments.
-6. The app reads the `imagePath` argument and either:
-   - runs File Explorer with `/select`, opening the containing folder and highlighting the screenshot; or
-   - when Alt is held, opens the screenshot in its default image app.
+6. The app reads the `imagePath` and button `action` arguments and either:
+   - for `Select`, runs File Explorer with `/select`, opening the containing folder and highlighting the screenshot; or
+   - for `Edit`, opens the screenshot in its default image app.
+   Clicking the notification body retains the same selection behavior, with Alt-click opening the image directly.
 
 The notification behavior is implemented in [Program.cs](Program.cs). The project is intentionally built as a Windows executable instead of a console app, so it can run from screenshot tools without opening a terminal window.
 

@@ -49,29 +49,42 @@ internal static class Program
             .AddText("Screenshot")
             .AddText(imagePath)
             .AddInlineImage(new Uri(imagePath))
+            .AddButton(new ToastButton()
+                .SetContent("Edit")
+                .AddArgument("action", "edit"))
+            .AddButton(new ToastButton()
+                .SetContent("Select")
+                .AddArgument("action", "select"))
             .Show();
     }
 
     private static void HandleToastActivation(string argument)
     {
         ToastArguments args = ToastArguments.Parse(argument);
+        string? imagePath = null;
+        string? action = null;
 
         foreach (KeyValuePair<string, string> arg in args)
         {
-            if (arg.Key != "imagePath")
+            if (arg.Key == "imagePath")
             {
-                continue;
+                imagePath = arg.Value;
             }
+            else if (arg.Key == "action")
+            {
+                action = arg.Value;
+            }
+        }
 
-            OpenScreenshot(arg.Value);
-
-            break;
+        if (!string.IsNullOrWhiteSpace(imagePath))
+        {
+            OpenScreenshot(imagePath, action);
         }
     }
 
-    private static void OpenScreenshot(string imagePath)
+    private static void OpenScreenshot(string imagePath, string? action)
     {
-        if (IsAltKeyDown())
+        if (action == "edit" || (action is null && IsAltKeyDown()))
         {
             Process.Start(new ProcessStartInfo
             {
