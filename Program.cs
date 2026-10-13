@@ -9,6 +9,8 @@ internal static class Program
     private const int VirtualKeyAlt = 0x12;
     private const uint ClipboardFormatUnicodeText = 13;
     private const uint GlobalMemoryMoveable = 0x0002;
+    private const uint FileOperationDelete = 0x0003;
+    private const ushort FileOperationFlagsRecycle = 0x0040 | 0x0010 | 0x0004 | 0x0400; // ALLOWUNDO | NOCONFIRMATION | SILENT | NOERRORUI
     private static readonly ManualResetEventSlim ToastActivationHandled = new(false);
 
     [DllImport("user32.dll")]
@@ -37,6 +39,22 @@ internal static class Program
 
     [DllImport("kernel32.dll")]
     private static extern IntPtr GlobalFree(IntPtr memory);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern int SHFileOperation(ref ShellFileOperation fileOperation);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct ShellFileOperation
+    {
+        public IntPtr Window;
+        public uint Function;
+        public string From;
+        public string? To;
+        public ushort Flags;
+        public bool AnyOperationsAborted;
+        public IntPtr NameMappings;
+        public string? ProgressTitle;
+    }
 
     [STAThread]
     private static int Main(string[] args)
@@ -84,6 +102,9 @@ internal static class Program
             .AddButton(new ToastButton()
                 .SetContent("Copy path")
                 .AddArgument("action", "copy"))
+            .AddButton(new ToastButton()
+                .SetContent("Delete")
+                .AddArgument("action", "delete"))
             .Show();
     }
 
@@ -119,6 +140,12 @@ internal static class Program
             return;
         }
 
+        if (action == "delete")
+        {
+            MoveToRecycleBin(imagePath);
+            return;
+        }
+
         if (action == "edit" || (action is null && IsAltKeyDown()))
         {
             Process.Start(new ProcessStartInfo
@@ -138,6 +165,31 @@ internal static class Program
     }
 
     private static bool IsAltKeyDown() => (GetAsyncKeyState(VirtualKeyAlt) & 0x8000) != 0;
+
+    private static void MoveToRecycleBin(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        // SHFileOperation expects a double-null-terminated list of paths.
+        var operation = new ShellFileOperation
+        {
+            Function = FileOperationDelete,
+            From = path + '\0' + '\0',
+            Flags = FileOperationFlagsRecycle
+        };
+        int result = SHFileOperation(ref operation);
+        if (result != 0 || operation.AnyOperationsAborted)
+        {
+            new ToastContentBuilder()
+                .AddText("Couldn't move screenshot to the Recycle Bin")
+                .AddText(path)
+                .Show();
+        }
+    }
 
     private static void CopyTextToClipboard(string text)
     {

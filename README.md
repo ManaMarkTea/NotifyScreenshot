@@ -2,7 +2,7 @@
 
 NotifyScreenshot is a small Windows .NET helper that shows a local screenshot file as a Windows toast notification.
 
-It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. The **Edit** button opens the screenshot in its default image app, **Select** opens File Explorer with that screenshot selected, and **Copy path** copies the screenshot's full path to the clipboard. Clicking the notification itself also selects the screenshot; Alt-clicking opens it in its default image app instead.
+It is meant to be launched by another screenshot tool, script, or hotkey workflow after an image has been saved. Pass the saved image path to `NotifyScreenshot.exe`, and it immediately displays a toast containing the file name/path and an inline preview. The **Edit** button opens the screenshot in its default image app, **Select** opens File Explorer with that screenshot selected, **Copy path** copies the screenshot's full path to the clipboard, and **Delete** moves the screenshot to the Recycle Bin. Clicking the notification itself also selects the screenshot; Alt-clicking opens it in its default image app instead.
 
 ## How It Works
 
@@ -12,14 +12,15 @@ It is meant to be launched by another screenshot tool, script, or hotkey workflo
    - the title `Screenshot`
    - the image path as notification text
    - the screenshot itself as an inline image preview
-   - `Edit`, `Select`, and `Copy path` buttons to open the screenshot, select it in File Explorer, or copy its path
+   - `Edit`, `Select`, `Copy path`, and `Delete` buttons to open the screenshot, select it in File Explorer, copy its path, or move it to the Recycle Bin
    - the image path stored in the toast activation arguments
 4. The app exits after showing the notification.
 5. If the toast is clicked later, Windows reactivates the app with the saved activation arguments.
 6. The app reads the `imagePath` and button `action` arguments and either:
    - for `Select`, runs File Explorer with `/select`, opening the containing folder and highlighting the screenshot;
-   - for `Edit`, opens the screenshot in its default image app; or
-   - for `Copy path`, copies the full image path to the clipboard.
+   - for `Edit`, opens the screenshot in its default image app;
+   - for `Copy path`, copies the full image path to the clipboard; or
+   - for `Delete`, moves the screenshot to the Recycle Bin.
    Clicking the notification body retains the same selection behavior, with Alt-click opening the image directly.
 
 The notification behavior is implemented in [Program.cs](Program.cs). The project is intentionally built as a Windows executable instead of a console app, so it can run from screenshot tools without opening a terminal window.
