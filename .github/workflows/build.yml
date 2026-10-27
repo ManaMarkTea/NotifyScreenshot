@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows executable
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish standalone executable
+        run: dotnet publish NotifyScreenshot.csproj --configuration Release --output publish-single
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NotifyScreenshot-win-x64
+          path: publish-single/NotifyScreenshot.exe
+          if-no-files-found: error

@@ -37,12 +37,10 @@ jobs:
       - name: Resolve release metadata
         id: release
         shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $tag = "${{ inputs.tag }}"
-          } else {
-            $tag = "${{ github.ref_name }}"
-          }
+          $tag = $env:RELEASE_TAG
 
           if ([string]::IsNullOrWhiteSpace($tag)) {
             throw "Release tag is required."
@@ -53,6 +51,7 @@ jobs:
           }
 
           "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$($tag.Substring(1))" >> $env:GITHUB_OUTPUT
           "asset=NotifyScreenshot-$tag-win-x64.exe" >> $env:GITHUB_OUTPUT
 
       - name: Publish standalone executable
@@ -65,6 +64,7 @@ jobs:
             --output $env:PUBLISH_DIR `
             -p:PublishSingleFile=true `
             -p:EnableCompressionInSingleFile=true `
+            -p:Version=${{ steps.release.outputs.version }} `
             -p:DebugType=none `
             -p:DebugSymbols=false
 

@@ -101,6 +101,8 @@ For a clean one-file output folder, publish to an empty folder or delete old pub
 
 ## GitHub Releases
 
+Every branch push and pull request runs the Build workflow and uploads the executable as a downloadable Actions artifact. GitHub Releases are created separately, only for version tags or manual release runs.
+
 This repository includes a GitHub Actions workflow that can build and publish the standalone Windows executable automatically.
 
 To create a release:
@@ -113,6 +115,8 @@ git push origin v1.0.0
 When GitHub receives a tag beginning with `v`, the workflow builds the app on Windows, publishes the self-contained single-file executable, and creates a GitHub Release with the `.exe` attached.
 
 You can also run the release workflow manually from the repository's `Actions` tab and enter a tag such as `v1.0.0`.
+
+The executable includes version metadata visible under **Properties > Details** in Windows Explorer. Local and CI builds use the `<Version>` in `NotifyScreenshot.csproj` (currently `1.1.0`). Release builds override it with the tag version, so `v1.2.3` produces file version `1.2.3.0` and product version `1.2.3` plus the source commit identifier. Update the project version when starting a new release cycle.
 
 ## Project Structure
 
